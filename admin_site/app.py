@@ -86,11 +86,11 @@ def create_app():
 
         if request.method == "POST":
             u = request.form.get("username", "").strip()
-            p = request.form.get("password", "")
+            p = request.form.get("password", "").strip()
 
             if (
-                u == Config.ADMIN_USERNAME
-                and p == Config.ADMIN_PASSWORD
+                u == Config.ADMIN_USERNAME.strip()
+                and p == Config.ADMIN_PASSWORD.strip()
             ):
                 session["admin_logged_in"] = True
                 session["admin_user"] = u
@@ -108,6 +108,23 @@ def create_app():
     def logout():
         session.clear()
         return redirect(url_for("login"))
+
+    # ── TEMP DEBUG — checks admin credential secrets for hidden issues ────
+    @app.route("/debug-admin-config")
+    def debug_admin_config():
+        def describe(val):
+            return {
+                "length": len(val),
+                "has_leading_whitespace": val != val.lstrip(),
+                "has_trailing_whitespace": val != val.rstrip(),
+                "preview": (val[:2] + "..." + val[-2:]) if len(val) > 4 else "(too short to preview)",
+            }
+        return jsonify({
+            "ADMIN_USERNAME": describe(Config.ADMIN_USERNAME),
+            "ADMIN_PASSWORD": describe(Config.ADMIN_PASSWORD),
+            "SECRET_KEY": describe(Config.SECRET_KEY),
+            "note": "has_trailing_whitespace=true on either field means a stray space/newline got pasted into the secret value — that's almost always why login silently fails.",
+        })
 
     # ── Dashboard ────────────────────────────────────────────────────────
 
