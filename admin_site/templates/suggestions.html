@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Suggestions{% endblock %}
+{% block topbar_title %}User Suggestions{% endblock %}
+{% block content %}
+<div class="section-hd"><h2>Site Suggestions</h2><span class="text-muted text-small">{{ suggestions|length }} total</span></div>
+{% if suggestions %}
+<div class="table-wrap"><table class="data-table">
+  <thead><tr><th>Name</th><th>URL</th><th>Category</th><th>Description</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+  <tbody>{% for s in suggestions %}
+  <tr>
+    <td><strong style="font-size:13px;">{{ s.name }}</strong></td>
+    <td><a href="{{ s.url }}" target="_blank" style="font-size:11px;color:var(--text-muted);">{{ (s.url or '')[:40] }}</a></td>
+    <td class="text-small">{{ s.category_slug or '—' }}</td>
+    <td style="max-width:200px;"><div class="sub text-muted text-small">{{ (s.description or '')[:60] }}</div></td>
+    <td><span class="badge {% if s.status=='approved' %}badge-yes{% elif s.status=='rejected' %}badge-no{% else %}badge-pending{% endif %}">{{ s.status|upper }}</span></td>
+    <td class="text-small text-muted">{{ s.created_at[:10] if s.created_at else '' }}</td>
+    <td><div class="actions-cell">
+      {% if s.status=='pending' %}
+      <form method="POST" action="{{ url_for('approve_suggestion',sug_id=s._id) }}"><button type="submit" class="action-btn action-btn-approve">Approve</button></form>
+      <form method="POST" action="{{ url_for('reject_suggestion',sug_id=s._id) }}" data-confirm="Reject this suggestion?"><button type="submit" class="action-btn action-btn-delete">Reject</button></form>
+      {% else %}<span class="text-muted text-small">Done</span>{% endif %}
+    </div></td>
+  </tr>
+  {% endfor %}</tbody>
+</table></div>
+{% else %}
+<div class="empty-state"><div class="icon">&#x1F4AC;</div><h3>No suggestions yet</h3></div>
+{% endif %}
+{% endblock %}

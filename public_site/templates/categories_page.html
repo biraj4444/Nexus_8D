@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Categories{% endblock %}
+{% block topbar_title %}All Categories{% endblock %}
+{% block content %}
+<div class="section-hd"><h2>All Categories</h2></div>
+<div class="cat-grid">
+{% for cat in categories %}
+<a class="cat-card" href="{{ url_for('category', slug=cat.slug) }}" style="border-top:3px solid {{ cat.color or '#555' }};">
+  <div class="c-icon">{{ cat.icon }}</div>
+  <div class="c-name">{{ cat.name }}</div>
+  <div class="c-desc">{{ cat.description or '' }}</div>
+  <div class="c-count">{{ counts.get(cat.slug,0) }}</div>
+  <div class="c-lbl">Items</div>
+</a>
+{% endfor %}
+</div>
+{% endblock %}

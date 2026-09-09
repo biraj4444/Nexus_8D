@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% from "macros.html" import item_card, pagination with context %}
+{% block title %}My Collection{% endblock %}
+{% block topbar_title %}My Collection{% endblock %}
+{% block content %}
+<div class="profile-header">
+  <div class="profile-avatar">{{ current_user.username[0]|upper }}</div>
+  <div class="profile-info">
+    <h2>{{ current_user.username }}'s Collection</h2>
+    <p>{{ total }} saved items &mdash; <a href="{{ url_for('profile') }}">Edit Preferences</a> &mdash; <a href="{{ url_for('logout') }}">Logout</a></p>
+  </div>
+</div>
+<div class="filter-bar mb-16">
+  <a class="filter-chip {% if not itype %}active{% endif %}" href="{{ url_for('my_collection') }}">All</a>
+  <a class="filter-chip {% if itype=='link' %}active{% endif %}" href="{{ url_for('my_collection',type='link') }}">Links</a>
+  <a class="filter-chip {% if itype=='video' %}active{% endif %}" href="{{ url_for('my_collection',type='video') }}">Videos</a>
+  <a class="filter-chip {% if itype=='image' %}active{% endif %}" href="{{ url_for('my_collection',type='image') }}">Images</a>
+  <a class="filter-chip {% if itype=='file' %}active{% endif %}" href="{{ url_for('my_collection',type='file') }}">Files</a>
+</div>
+{% if items %}
+  {% if itype in ['link','file'] %}
+    <div class="link-file-list">{% for item in items %}{{ item_card(item, user_favorites, user_hidden) }}{% endfor %}</div>
+  {% elif itype in ['video','image'] %}
+    <div class="grid">{% for item in items %}{{ item_card(item, user_favorites, user_hidden) }}{% endfor %}</div>
+  {% else %}
+    {% set media=items|selectattr('type','in',['video','image'])|list %}
+    {% set rows=items|selectattr('type','in',['link','file'])|list %}
+    {% if media %}<div class="grid mb-24">{% for item in media %}{{ item_card(item, user_favorites, user_hidden) }}{% endfor %}</div>{% endif %}
+    {% if rows %}<div class="link-file-list">{% for item in rows %}{{ item_card(item, user_favorites, user_hidden) }}{% endfor %}</div>{% endif %}
+  {% endif %}
+{{ pagination(page, total_pages, url_for('my_collection')+('?type='+itype if itype else '')) }}
+{% else %}
+<div class="empty-state"><div class="icon">&#x2661;</div><h3>Your collection is empty</h3><p>Click the heart icon on any item to save it here.</p><a class="btn btn-primary" href="{{ url_for('index') }}" style="margin-top:14px;">Browse Items</a></div>
+{% endif %}
+{% endblock %}

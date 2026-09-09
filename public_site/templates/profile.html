@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+{% block topbar_title %}Profile & Settings{% endblock %}
+{% block content %}
+<div class="profile-header">
+  <div class="profile-avatar">{{ current_user.username[0]|upper }}</div>
+  <div class="profile-info">
+    <h2>{{ current_user.username }}</h2>
+    <p>Member since {{ current_user.created_at[:10] if current_user.created_at else 'N/A' }}</p>
+  </div>
+</div>
+{% if msg %}<div class="alert alert-ok">{{ msg }}</div>{% endif %}
+<div class="form-box">
+  <div class="form-box-header">Preferred Categories</div>
+  <div class="form-body">
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Select categories you're interested in. These will be used to personalise your feed in future updates.</p>
+    <form method="POST">
+      <div class="cat-select-grid">
+        {% for cat in categories %}
+        <label class="cat-check-item">
+          <input type="checkbox" name="pref_categories" value="{{ cat.slug }}" {% if cat.slug in (current_user.pref_categories or []) %}checked{% endif %}>
+          <span>{{ cat.icon }}</span>{{ cat.name }}
+        </label>
+        {% endfor %}
+      </div>
+      <button type="submit" class="btn btn-primary" style="margin-top:18px;">Save Preferences</button>
+    </form>
+    <div style="margin-top:24px;padding-top:18px;border-top:1px solid var(--border);">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Favorites: {{ (current_user.favorites or [])|length }} &mdash; Hidden items: {{ (current_user.hidden or [])|length }}</div>
+      <a class="btn btn-outline btn-sm" href="{{ url_for('my_collection') }}">View My Collection</a>
+      &nbsp;<a class="btn btn-outline btn-sm" href="{{ url_for('logout') }}" style="color:#ef9a9a;border-color:#6e1a1a;">Logout</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

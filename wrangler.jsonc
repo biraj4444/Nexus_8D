@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "nexus",
+  "main": "worker.py",
+  "compatibility_date": "2026-09-03",
+  "compatibility_flags": ["python_workers"],
+
+  "assets": {
+    "directory": "./public/"
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "nexusvault-db",
+      "database_id": "986d7f45-02f7-40a6-9825-d5606140a061"
+    }
+  ],
+
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true,
+      "persist": true
+    }
+  }
+}

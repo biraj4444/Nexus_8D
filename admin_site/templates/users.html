@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block topbar_title %}Registered Users{% endblock %}
+{% block content %}
+<div class="section-hd"><h2>All Users <span class="text-muted text-small">({{ users|length }})</span></h2></div>
+{% if users %}
+<div class="table-wrap"><table class="data-table">
+  <thead><tr><th>Username</th><th>Favorites</th><th>Hidden</th><th>Pref. Categories</th><th>Registered</th></tr></thead>
+  <tbody>{% for u in users %}
+  <tr>
+    <td><strong style="font-size:13px;">{{ u.username }}</strong></td>
+    <td><span class="badge badge-orange">{{ (u.favorites or [])|length }}</span></td>
+    <td class="text-small text-muted">{{ (u.hidden or [])|length }}</td>
+    <td class="text-small text-muted">{{ (u.pref_categories or [])|join(', ') or '—' }}</td>
+    <td class="text-small text-muted">{{ u.created_at[:10] if u.created_at else '' }}</td>
+  </tr>
+  {% endfor %}</tbody>
+</table></div>
+{% else %}
+<div class="empty-state"><div class="icon">&#x1F464;</div><h3>No users yet</h3></div>
+{% endif %}
+{% endblock %}

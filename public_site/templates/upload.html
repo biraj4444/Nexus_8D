@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% block title %}Upload{% endblock %}
+{% block topbar_title %}➕ Upload / Add Content{% endblock %}
+
+{% block content %}
+{% if success %}
+<div class="upload-success">
+  <div class="icon">✅</div>
+  <h2>Submitted Successfully!</h2>
+  <p>Your content has been submitted for admin review. It will appear publicly once approved.</p>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+    <a class="btn btn-primary" href="{{ url_for('upload') }}">Upload More</a>
+    <a class="btn btn-outline" href="{{ url_for('index') }}">Go Home</a>
+  </div>
+</div>
+{% else %}
+
+{% if error %}
+<div class="alert alert-err">⚠️ {{ error }}</div>
+{% endif %}
+
+<div class="form-box">
+  <div class="form-box-header">
+    <svg viewBox="0 0 24 24" style="width:20px;height:20px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    Upload Content to NexusVault
+  </div>
+  <div class="form-body">
+    <div class="alert alert-info">
+      📋 Public uploads go through admin approval before appearing on the site.
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" id="uploadForm">
+
+      <!-- Type Tabs -->
+      <div class="type-tabs">
+        <div class="type-tab active" data-tab="link">🔗 Link</div>
+        <div class="type-tab" data-tab="video">🎬 Video</div>
+        <div class="type-tab" data-tab="image">🖼️ Image</div>
+        <div class="type-tab" data-tab="file">📄 File</div>
+      </div>
+      <input type="hidden" name="type" id="typeInput" value="link">
+
+      <!-- Common fields -->
+      <div class="form-group">
+        <label>Title *</label>
+        <input class="form-control" name="title" placeholder="Give it a clear, descriptive title" required>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea class="form-control" name="description" placeholder="Describe what this is, what it contains, why it's useful…"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Category</label>
+          <select class="form-control" name="category_slug">
+            {% for cat in categories %}
+            <option value="{{ cat.slug }}">{{ cat.icon }} {{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Zone / Region</label>
+          <select class="form-control" name="zone_slug">
+            {% for z in zones %}
+            <option value="{{ z.slug }}" {% if z.slug=='global' %}selected{% endif %}>{{ z.flag_emoji }} {{ z.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tags (comma-separated)</label>
+          <input class="form-control" name="tags" placeholder="e.g. free, tool, india, 2024">
+        </div>
+        <div class="form-group">
+          <label>Your Name / Handle</label>
+          <input class="form-control" name="uploader_name" placeholder="Anonymous" maxlength="60">
+        </div>
+      </div>
+
+      <!-- Link pane -->
+      <div class="type-pane active" id="pane-link">
+        <div class="form-group">
+          <label>URL *</label>
+          <input class="form-control" name="url" type="url" placeholder="https://example.com">
+        </div>
+        <div class="form-group">
+          <label>Thumbnail URL (optional)</label>
+          <input class="form-control" name="thumbnail_url" type="url" placeholder="https://example.com/thumb.jpg">
+        </div>
+      </div>
+
+      <!-- Video pane -->
+      <div class="type-pane" id="pane-video">
+        <div class="form-group">
+          <label>Video File (upload)</label>
+          <div class="drop-zone" id="dzVideo">
+            <div class="dz-icon">🎬</div>
+            <div class="dz-text">Click to select video file</div>
+            <div class="dz-hint">MP4, MOV, AVI, MKV — up to 512 MB</div>
+            <div class="dz-preview" id="dzPreviewVideo"></div>
+            <input type="file" class="dz-file-input" name="file" accept="video/*">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>— or External Video URL</label>
+          <input class="form-control" name="external_url" type="url" placeholder="https://youtube.com/watch?v=... or direct .mp4 link">
+        </div>
+        <div class="form-group">
+          <label>Thumbnail URL (optional)</label>
+          <input class="form-control" name="thumbnail_url" type="url" placeholder="https://…">
+        </div>
+      </div>
+
+      <!-- Image pane -->
+      <div class="type-pane" id="pane-image">
+        <div class="form-group">
+          <label>Image File (upload)</label>
+          <div class="drop-zone" id="dzImage">
+            <div class="dz-icon">🖼️</div>
+            <div class="dz-text">Click to select image</div>
+            <div class="dz-hint">JPG, PNG, GIF, WebP — up to 50 MB</div>
+            <div class="dz-preview" id="dzPreviewImage"></div>
+            <input type="file" class="dz-file-input" name="file" accept="image/*">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>— or External Image URL</label>
+          <input class="form-control" name="external_url" type="url" placeholder="https://…">
+        </div>
+      </div>
+
+      <!-- File pane -->
+      <div class="type-pane" id="pane-file">
+        <div class="form-group">
+          <label>File (upload)</label>
+          <div class="drop-zone" id="dzFile">
+            <div class="dz-icon">📄</div>
+            <div class="dz-text">Click to select any file</div>
+            <div class="dz-hint">PDF, ZIP, DOCX, EXE… — up to 512 MB</div>
+            <div class="dz-preview" id="dzPreviewFile"></div>
+            <input type="file" class="dz-file-input" name="file">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>— or External File URL</label>
+          <input class="form-control" name="external_url" type="url" placeholder="https://…">
+        </div>
+        <div class="form-group">
+          <label>Thumbnail URL (optional)</label>
+          <input class="form-control" name="thumbnail_url" type="url" placeholder="https://…">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Submit for Review
+      </button>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  "use strict";
+
+  // ── Tab switching ──────────────────────────────────────────────
+  var tabs = document.querySelectorAll(".type-tab");
+  var panes = document.querySelectorAll(".type-pane");
+  var typeInput = document.getElementById("typeInput");
+
+  function switchTab(tabName) {
+    tabs.forEach(function (t) {
+      t.classList.toggle("active", t.dataset.tab === tabName);
+    });
+    panes.forEach(function (p) {
+      p.classList.toggle("active", p.id === "pane-" + tabName);
+    });
+    typeInput.value = tabName;
+  }
+
+  tabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      switchTab(tab.dataset.tab);
+    });
+  });
+
+  // ── Drop zone functionality ─────────────────────────────────────
+  var dropZones = document.querySelectorAll(".drop-zone");
+
+  dropZones.forEach(function (dz) {
+    var fileInput = dz.querySelector(".dz-file-input");
+    var previewEl = dz.querySelector(".dz-preview");
+    if (!fileInput) return;
+
+    dz.addEventListener("click", function (e) {
+      if (e.target !== fileInput) {
+        fileInput.click();
+      }
+    });
+
+    dz.addEventListener("dragover", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dz.classList.add("dz-dragover");
+    });
+
+    dz.addEventListener("dragleave", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dz.classList.remove("dz-dragover");
+    });
+
+    dz.addEventListener("drop", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dz.classList.remove("dz-dragover");
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        fileInput.files = e.dataTransfer.files;
+        showPreview(fileInput, previewEl);
+      }
+    });
+
+    fileInput.addEventListener("change", function () {
+      showPreview(fileInput, previewEl);
+    });
+  });
+
+  function showPreview(fileInput, previewEl) {
+    if (!previewEl) return;
+    if (!fileInput.files || fileInput.files.length === 0) return;
+
+    var file = fileInput.files[0];
+    var sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+
+    if (file.type.startsWith("image/")) {
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        previewEl.innerHTML =
+          '<div style="margin-top:12px;display:flex;align-items:center;gap:12px;">' +
+          '<img src="' + e.target.result + '" style="max-width:120px;max-height:80px;border-radius:6px;object-fit:cover;">' +
+          '<div><strong>' + escapeHtml(file.name) + '</strong><br>' +
+          '<span style="font-size:12px;color:var(--text-muted);">' + sizeMB + ' MB</span></div>' +
+          '</div>';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      previewEl.innerHTML =
+        '<div style="margin-top:12px;padding:10px 14px;background:var(--bg);border-radius:6px;display:flex;align-items:center;gap:10px;">' +
+        '<span style="font-size:24px;">📎</span>' +
+        '<div><strong>' + escapeHtml(file.name) + '</strong><br>' +
+        '<span style="font-size:12px;color:var(--text-muted);">' + sizeMB + ' MB</span></div>' +
+        '</div>';
+    }
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+})();
+</script>
+{% endblock %}
