@@ -70,15 +70,25 @@ def _decode_value(key, value):
     Convert SQLite values back into the shape expected by the Flask app.
     """
 
-    if key in ("tags", "extra_details"):
+    if key in ("tags", "favorites", "hidden", "pref_categories"):
         if value is None:
-            return [] if key == "tags" else {}
+            return []
 
         if isinstance(value, str):
             try:
                 return json.loads(value)
             except Exception:
-                return [] if key == "tags" else {}
+                return []
+
+    if key == "extra_details":
+        if value is None:
+            return {}
+
+        if isinstance(value, str):
+            try:
+                return json.loads(value)
+            except Exception:
+                return {}
 
     if key in ("is_featured", "is_approved"):
         return bool(value)

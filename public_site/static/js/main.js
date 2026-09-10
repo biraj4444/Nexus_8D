@@ -177,3 +177,4 @@ document.querySelectorAll('.cat-check-item').forEach((item) => {
     });
   }
 });
+
