@@ -106,3 +106,75 @@ if (document.querySelector('[data-stat]')) {
   pollStats();
   setInterval(pollStats, 30000);
 }
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+function showToast(msg, type = 'success') {
+  let c = document.querySelector('.flashes');
+  if (!c) {
+    c = document.createElement('div');
+    c.className = 'flashes';
+    document.body.appendChild(c);
+  }
+  const el = document.createElement('div');
+  el.className = `flash flash-${type}`;
+  el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; }, 3000);
+  setTimeout(() => { el.remove(); }, 3400);
+}
+
+// ── Favorite toggle (AJAX) ────────────────────────────────────────────────
+function setupFavBtn(btn) {
+  btn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const id = btn.dataset.id;
+    const res = await fetch(`/favorite/${id}`, { method: 'POST' });
+    if (res.status === 401) { window.location.href = '/login'; return; }
+    const data = await res.json();
+    if (data.ok) {
+      btn.classList.toggle('active', data.saved);
+      btn.classList.toggle('fav-saved', data.saved);
+      btn.title = data.saved ? 'Remove from collection' : 'Save to collection';
+      btn.textContent = data.saved ? '♥' : '♡';
+      showToast(data.saved ? '♥ Saved to your collection' : 'Removed from collection',
+                data.saved ? 'success' : 'info');
+    }
+  });
+}
+document.querySelectorAll('.fav-btn').forEach(setupFavBtn);
+
+// ── Hide item (AJAX) ──────────────────────────────────────────────────────
+document.querySelectorAll('.hide-btn').forEach((btn) => {
+  btn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const id = btn.dataset.id;
+    const res = await fetch(`/hide/${id}`, { method: 'POST' });
+    if (res.status === 401) { window.location.href = '/login'; return; }
+    const data = await res.json();
+    if (data.ok && data.hidden) {
+      const card = document.getElementById('item-card-' + id) ||
+                   btn.closest('.card,.link-row,.file-row');
+      if (card) {
+        card.style.opacity = '0';
+        card.style.transform = 'scale(.95)';
+        setTimeout(() => card.remove(), 300);
+      }
+      showToast('Hidden from your view', 'info');
+    }
+  });
+});
+
+// ── Category checkbox styling (register/profile forms) ───────────────────
+document.querySelectorAll('.cat-check-item').forEach((item) => {
+  const cb = item.querySelector('input[type=checkbox]');
+  if (cb) {
+    item.classList.toggle('checked', cb.checked);
+    item.addEventListener('click', () => {
+      cb.checked = !cb.checked;
+      item.classList.toggle('checked', cb.checked);
+    });
+  }
+});
+

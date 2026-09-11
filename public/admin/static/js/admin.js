@@ -43,7 +43,7 @@ function updateFilePreview(input, zone) {
 document.querySelectorAll('[data-action="approve"]').forEach(btn => {
   btn.addEventListener('click', async () => {
     const itemId = btn.dataset.id;
-    const res = await fetch(`/item/${itemId}/approve`, { method:'POST' });
+    const res = await fetch(`${window.ADMIN_PREFIX || ''}/item/${itemId}/approve`, { method:'POST' });
     const data = await res.json();
     if (data.ok) {
       btn.textContent = data.is_approved ? 'Unapprove' : 'Approve';
@@ -60,7 +60,7 @@ document.querySelectorAll('[data-action="approve"]').forEach(btn => {
 document.querySelectorAll('[data-action="feature"]').forEach(btn => {
   btn.addEventListener('click', async () => {
     const itemId = btn.dataset.id;
-    const res = await fetch(`/item/${itemId}/feature`, { method:'POST' });
+    const res = await fetch(`${window.ADMIN_PREFIX || ''}/item/${itemId}/feature`, { method:'POST' });
     const data = await res.json();
     if (data.ok) {
       const badge = document.getElementById('featured-badge-' + itemId);
@@ -105,7 +105,7 @@ function showToast(msg, type = 'success') {
 
 // ── Live stats polling ────────────────────────────────────────────────────────
 function pollStats() {
-  fetch('/api/stats').then(r => r.json()).then(data => {
+  fetch(`${window.ADMIN_PREFIX || ''}/api/stats`).then(r => r.json()).then(data => {
     document.querySelectorAll('[data-stat]').forEach(el => {
       const key = el.dataset.stat;
       if (data[key] !== undefined) el.textContent = Number(data[key]).toLocaleString();
