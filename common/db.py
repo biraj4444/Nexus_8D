@@ -1025,11 +1025,15 @@ class Database:
                 f'{order}'
             )
 
-            if skip:
-                sql += f" OFFSET {int(skip)}"
-
             if limit:
                 sql += f" LIMIT {int(limit)}"
+            elif skip:
+                # SQLite requires OFFSET to follow a LIMIT clause;
+                # -1 means "no limit" so OFFSET-only calls stay valid.
+                sql += " LIMIT -1"
+
+            if skip:
+                sql += f" OFFSET {int(skip)}"
 
             rows = self._d1_rows(sql, params)
 
